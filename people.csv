@@ -1,0 +1,24 @@
+Name,Team (blank for unassigned),TeamPrefs,Friends,Foes,Traits
+Bill,,,,,
+Cathy,,,,,
+Ed,,,,,Art;Sound
+Frank,,,Jack,Mike,Leader
+Jack,,,,,
+Joe,,,John,,
+Katie,,,Felicity;Cora,Kai,
+Randy,,,,,Leader
+Bob,,,,,
+John,,,,,Sound
+Mike,,,Cathy;Bob,,Art
+Sam,,,,,
+Sally,,,,,
+Xavier,,,,,
+Zach,,,,Katie,
+Christine,,,,,Sound
+Jens,,,,,
+Mario,,,,,Art
+Felicity,,,,,
+Henry,,,,,Leader
+Rose,,,,,
+Cora,,,Mario,Sam;Sally,
+Kai,,,Joe;Xavier;Sally,Sam,
