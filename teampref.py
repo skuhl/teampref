@@ -342,7 +342,7 @@ removePainAbove, then always remove them."""
             self.unassigned = self.unassigned + free
 
         # Occasionally run sanity check
-        if random.random() < .01:
+        if random.random() < .001:
             self.sanityCheck()
 
     def sanityCheck(self):
