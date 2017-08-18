@@ -33,11 +33,12 @@ configPainTrait = 3
 class Person:
 
     def __init__(self, name, prefs, friends, foes, traits):
-        self.name = name
-        self.prefs = prefs
-        self.friends = friends
-        self.foes = foes
-        self.traits = traits
+        # Save names, team preferences, friends, foes, and traits in lowercase.
+        self.name    = name.lower()
+        self.prefs   = [x.lower() for x in prefs]
+        self.friends = [x.lower() for x in friends]
+        self.foes    = [x.lower() for x in foes]
+        self.traits  = [x.lower() for x in traits]
 
         # This will be set to true if this person is assigned to the
         # unassigned team list. It means that they are a free agent (even
@@ -50,18 +51,18 @@ class Person:
         # A hash of the name. The Team class uses a set of hashes of
         # people on the team to speed up checks of if the person is on
         # the team or not.
-        self.namehash = hash(name)
+        self.namehash = hash(self.name)
 
         # Foe names hashed and stored in a set
-        self.foeset = frozenset([ hash(f) for f in foes ])
+        self.foeset = frozenset([ hash(f) for f in self.foes ])
         # Friend names hashed and stored in a set
-        self.friendset = frozenset([ hash(f) for f in friends])
+        self.friendset = frozenset([ hash(f) for f in self.friends])
 
         # Dictionary of team preferences. Allows us to quickly
         # translate from team name to the rank of the preference.
         self.prefdict = { }
-        for i in range(len(prefs)):
-            self.prefdict[prefs[i]] = i
+        for i in range(len(self.prefs)):
+            self.prefdict[self.prefs[i]] = i
             
             
 
@@ -93,12 +94,18 @@ team."""
 class Team:
 
     def __init__(self, name, capacity, needTraits):
-        self.name = name
+        self.name = name.lower()
+        if capacity < 1:
+            print("Capacity of team %s was too small (%d)\n" % ( self.name, capacity) )
         self.capacity = capacity
         self.people = []
         self.nameset = set()
-        # Dictionary containing traits and counts that we need
-        self.traits = needTraits
+        # *Dictionary* containing traits and counts that we need (convert to lowercase)
+        self.traits = {}
+        if needTraits:
+            for trait, value in needTraits.items():
+                self.traits[trait.lower()] = value
+        
         # Dictionary containing count of traits that we have
         self.currentTraits = {}
 
