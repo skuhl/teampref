@@ -6,13 +6,13 @@ A person's preferences are input as a "people.csv" file. Each person is on a row
 
  * Current team. If the person is already assigned to a team (and should not be moved), the current team may be specified.
 
- * Team preferences. A semi-colon delimited list of the team names that the person prefers to be a member of (first team listed is given the most priority). When you collect this information, you likely want to cap the number of preferred teams people may request.
+ * Team preferences. A comma delimited list of the team names that the person prefers to be a member of (first team listed is given the most priority). When you collect this information, you likely want to cap the number of preferred teams people may request.
 
- * Friends. A semi-colon delimited list friends which you wish to be on the same team as. When you collect this information, you likely want to cap the number of friends people may list.
+ * Friends. A somma delimited list friends which you wish to be on the same team as. When you collect this information, you likely want to cap the number of friends people may list.
 
- * Foes. A semi-colon delimited list of people the person wants to avoid. When you collect this information, you likely want to cap the number of friends people may list.
+ * Foes. A somma delimited list of people the person wants to avoid. When you collect this information, you likely want to cap the number of friends people may list.
 
- * Traits. A semi-colon delimited list of trait names. For example, every team might need a leader. A person could identify themselves as having the "Leader" trait.
+ * Traits. A comma delimited list of trait names. For example, every team might need a leader. A person could identify themselves as having the "Leader" trait.
 
 
 The person who runs the program must also specify the following information in a "teams.csv" file. The software will not work unless this information is provided (and there is enough capacity in the teams for people to be assigned to them). Each row of this file contains the following information:

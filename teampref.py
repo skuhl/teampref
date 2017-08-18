@@ -1,8 +1,3 @@
-# TODO
-# - Minimum team sizes.
-# - Sanity check trait counts on teams.
-# - Sanity check for existence of people names and team names.
-
 from random import shuffle
 import random
 import copy
@@ -96,7 +91,9 @@ class Team:
     def __init__(self, name, capacity, needTraits):
         self.name = name.lower()
         if capacity < 1:
-            print("Capacity of team %s was too small (%d)\n" % ( self.name, capacity) )
+            print("ERROR: Capacity of team %s was too small (%d) to have teammembers.\n" % ( self.name, capacity) )
+            exit(1)
+            
         self.capacity = capacity
         self.people = []
         self.nameset = set()
@@ -266,6 +263,10 @@ all of the required traits are satisfied or not."""
             if hash(p.name) not in self.nameset:
                 print("Team sanity check: hash of name was not in nameset.")
                 sys.exit(1)
+            
+        # TODO: Verify that team's unfilled traits match based on the
+        # people who are on the team.
+        
 
 
     def __str__(self):
@@ -338,6 +339,24 @@ removePainAbove, then always remove them."""
         for t in self.teams:
             t.sanityCheck()
 
+        # Get a list of all people (unassigned and assigned to teams)
+        allPeople = self.unassigned
+        for t in self.teams:
+            allPeople = allPeople + t.people
+
+        # Verify the friends/foes/team preferences for the person are valid
+        for p in allPeople:
+            for other in p.friends + p.foes:
+                if not self.personExists(other):
+                    print("Person '%s' lists '%s' as a friend/foe but the friend/foe doesn't exist." % (p.name, other))
+                    exit(1)
+            for t in p.prefs:
+                if not self.findTeam(t):
+                    print("Person '%s' lists '%s' as a team preference, but the team doesn't exist." % (p.name, t))
+                    exit(1)
+            
+
+
                       
     def makeAssignments(self, obeyPrefs):
         """Put all unassigned people onto teams."""
@@ -382,7 +401,19 @@ removePainAbove, then always remove them."""
                 teams.append(candidate)
         return teams
     
+    def personExists(self, name):
+        """Verifies that someone with the person's name exists on either a team or on the unassigned list. This function helps us verify that a listed friend/foe actually exists after we load the data."""
+        h = hash(name)
+        for t in self.teams:
+            if h in t.nameset:
+                return True
+        for p in self.unassigned:
+            if name == p.name:
+                return True
+        return False
 
+
+    
     def addPersonToTeam(self, person, teamName):
         """Add a person to the specified team based on the team name. Return True if successful. Exit if we can't find the team."""
         team = self.findTeam(teamName)
@@ -487,10 +518,10 @@ removePainAbove, then always remove them."""
             for team in self.teams:
                 for p in team.people:
 
-                    prefs = ";".join(p.prefs)
-                    friends = ";".join(p.friends)
-                    foes = ";".join(p.foes)
-                    traits= ";".join(p.traits)
+                    prefs   = ",".join(p.prefs)
+                    friends = ",".join(p.friends)
+                    foes    = ",".join(p.foes)
+                    traits  = ",".join(p.traits)
                         
                     writer.writerow([p.name, team.name, prefs,
                                      friends, foes, traits])
@@ -684,15 +715,18 @@ def readTeamGroup(filename):
 
             # Convert traits into dict:
             traitsDict = {}
-            for trait in mysplit(traits, ";"):
+            for trait in mysplit(traits, ","):
                 tokens = mysplit(trait, None)
                 if len(tokens) == 2:
                     traitsDict[str(tokens[0])] = int(tokens[1])
+                else:
+                    print("ERROR: For team '%s', we expected a quantity after the trait: %s" % (teamName, str(tokens)))
+                    exit(1)
 
             newTeam = Team(teamName, maxCapacity, traitsDict)
             tg.addTeam(newTeam)
-            
-        return tg
+
+    return tg
         
 
 def readPeople(filename, tg):
@@ -716,10 +750,10 @@ def readPeople(filename, tg):
 
             personName = str(r[0].strip())
             teamName = str(r[1].strip())
-            teamPrefs = mysplit(str(r[2]), ";")
-            friends   = mysplit(str(r[3]), ";")
-            foes      = mysplit(str(r[4]), ";")
-            traits    = mysplit(str(r[5]), ";")
+            teamPrefs = mysplit(str(r[2]), ",")
+            friends   = mysplit(str(r[3]), ",")
+            foes      = mysplit(str(r[4]), ",")
+            traits    = mysplit(str(r[5]), ",")
 
             p = Person(personName, teamPrefs, friends, foes, traits)
             if len(teamName) > 0:
@@ -740,6 +774,7 @@ def readPeople(filename, tg):
 # Read teams/people from files:
 tg = readTeamGroup("teams.csv")
 readPeople("people.csv", tg)
+tg.sanityCheck()
 
 smallestPain = 100000
 bestTeamGroup = None
