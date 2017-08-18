@@ -292,7 +292,7 @@ all of the required traits are satisfied or not."""
             foes    = "%d foes"    % len(self.nameset & i.foeset)
             
             s = s+"%s (pain %d, %s, %s, %s, traits %s)\n" % (i.name, i.painIndex(self), rank, friends, foes, i.traits)
-        return s;
+        return s
 
     def __hash__(self):
         return hash(self.name)
@@ -308,7 +308,7 @@ class TeamGroup:
 
     def addUnassigned(self, person):
         """Add a person to the unassigned list."""
-        person.freeAgent = True;
+        person.freeAgent = True
         self.unassigned.append(person)
 
     def reset(self, percentage, removePainAbove=1000):
@@ -348,7 +348,7 @@ removePainAbove, then always remove them."""
         # While there are unassigned people, assign them according to their preferences.
         failList = []
         while len(self.unassigned) > 0:
-            person = self.unassigned.pop();  # remove person from end of list
+            person = self.unassigned.pop()  # remove person from end of list
             if not self.addPersonPrefs(person, obeyPrefs):
                 failList.append(person)
 
@@ -366,7 +366,7 @@ removePainAbove, then always remove them."""
         """Find the team with the given team name."""
         for t in self.teams:
             if t.name == teamName:
-                return t;
+                return t
         return None
 
     def randomTeam(self):
@@ -689,7 +689,7 @@ def readTeamGroup(filename):
                 if len(tokens) == 2:
                     traitsDict[str(tokens[0])] = int(tokens[1])
 
-            newTeam = Team(teamName, maxCapacity, traitsDict);
+            newTeam = Team(teamName, maxCapacity, traitsDict)
             tg.addTeam(newTeam)
             
         return tg
