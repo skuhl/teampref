@@ -24,16 +24,26 @@ configPainFoe = 10
 configPainTrait = 3
 
 
+def dedupList(oldlist):
+    """Remove duplicate entries in a list while preserving order
+    (first entry is kept, subsequent entries removed.)"""
+    newlist = []
+    for i in oldlist:
+        if i not in newlist:
+            newlist.append(i)
+    return newlist
+
+
 
 class Person:
 
     def __init__(self, name, prefs, friends, foes, traits):
         # Save names, team preferences, friends, foes, and traits in lowercase.
         self.name    = name.lower()
-        self.prefs   = [x.lower() for x in prefs]
-        self.friends = [x.lower() for x in friends]
-        self.foes    = [x.lower() for x in foes]
-        self.traits  = [x.lower() for x in traits]
+        self.prefs   = dedupList([x.lower() for x in prefs])
+        self.friends = dedupList([x.lower() for x in friends])
+        self.foes    = dedupList([x.lower() for x in foes])
+        self.traits  = dedupList([x.lower() for x in traits])
 
         # This will be set to true if this person is assigned to the
         # unassigned team list. It means that they are a free agent (even
