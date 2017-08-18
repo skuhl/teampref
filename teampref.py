@@ -39,11 +39,11 @@ class Person:
 
     def __init__(self, name, prefs, friends, foes, traits):
         # Save names, team preferences, friends, foes, and traits in lowercase.
-        self.name    = name.lower()
-        self.prefs   = dedupList([x.lower() for x in prefs])
-        self.friends = dedupList([x.lower() for x in friends])
-        self.foes    = dedupList([x.lower() for x in foes])
-        self.traits  = dedupList([x.lower() for x in traits])
+        self.name    = name.lower().strip()
+        self.prefs   = dedupList([x.lower().strip() for x in prefs])
+        self.friends = dedupList([x.lower().strip() for x in friends])
+        self.foes    = dedupList([x.lower().strip() for x in foes])
+        self.traits  = dedupList([x.lower().strip() for x in traits])
 
         # This will be set to true if this person is assigned to the
         # unassigned team list. It means that they are a free agent (even
@@ -683,9 +683,9 @@ def generatePeople(tg, numPeople, numPrefs, numFriends, numFoes):
 def mysplit(string, sep):
     """Tokenize a string. Remove whitespace from tokens. Delete tokens that are empty strings. If sep is none, separate based on whitespace."""
 
-    # Append seperator to string (this helps if we are tokenizing
-    # based on semicolons and a semicolon is optional in the event
-    # that there is only one thing).
+    # Append seperator to string. This helps if we are tokenizing a
+    # list of items separated by commas and there may (or may not) be
+    # a comma at the end of the list.
     if sep:
         string = string+sep
         
