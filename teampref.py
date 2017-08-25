@@ -33,6 +33,29 @@ def dedupList(oldlist):
             newlist.append(i)
     return newlist
 
+class PainIndex:
+    def __init__(self, highestPain, numPeopleWithHighest, avgPain):
+        self.highestPain = highestPain
+        self.numPeopleWithHighest = numPeopleWithHighest
+        self.avgPain = avgPain
+
+    def __str__(self):
+        return "%d,%d,%0.2f" % (self.highestPain, self.numPeopleWithHighest, self.avgPain)
+
+
+    def __lt__(self, otherScore):
+        if self.highestPain < otherScore.highestPain:
+            return True
+        if self.highestPain == otherScore.highestPain and self.numPeopleWithHighest < otherScore.numPeopleWithHighest:
+            return True
+        if self.highestPain == otherScore.highestPain and self.numPeopleWithHighest == otherScore.numPeopleWithHighest and self.avgPain < otherScore.avgPain:
+            return True
+        return False
+
+    def __eq__(self, otherScore):
+        if self.highestPain == otherScore.highestPain and self.numPeopleWithHighest == otherScore.numPeopleWithHighest and self.avgPain == otherScore.avgPain:
+            return True
+        return False
 
 
 class Person:
@@ -91,7 +114,7 @@ team."""
         # If there are unmet traits after we are added onto the
         # team, then increase pain.
         unfilledTraitCount = team.unfilledTraitCount()
-        
+
         return painIndex + configPainFoe*len(foesPresent) + configPainFriend*len(friendsPresent) + team.traitPain()
         #return painIndex
 
@@ -510,7 +533,8 @@ removePainAbove, then always remove them."""
         numWithLargestPain = singleList.count(largestPain)
 
         # Return the largest team value
-        return largestPain + numWithLargestPain/1000.0
+        return PainIndex(largestPain, numWithLargestPain, sum(singleList)/float(len(singleList)))
+        # return largestPain + numWithLargestPain/1000.0
         
         
     def __str__(self):
@@ -554,7 +578,7 @@ class TeamMutate:
             if t.numUnassigned() > 0:
                 print("Failed to assign %d people." % t.numUnassigned())
             self.pain.append(t.painIndex())
-            print("strain %d has initial pain of %f" % (i, self.pain[i]))
+            print("strain %d has initial pain of %s" % (i, self.pain[i]))
 
         print("Created %d strains." % numStrains)
 
@@ -568,18 +592,23 @@ class TeamMutate:
             # Make a copy so we don't lose current solution
             working = copy.deepcopy(self.tg[strain])
             # Remove some people from teams
-            working.reset(random.randrange(1,100), math.floor(pain))
+            working.reset(random.randrange(1,100), pain.highestPain)
             # Assign people back into teams
             working.makeAssignments((random.random()/20+.95)*100)
             # Measure new pain
             pain = working.painIndex()
 
-            # Save new pain if it is less than best so far
-            if pain <= self.pain[strain]:
-                if pain < self.pain[strain]:
-                    print("strain %d found new best pain %f" % (strain, pain))
+            # Save new pain if it is less than best so far. If is of
+            # equal pain, switch to the new version instead so that we
+            # try a wider variety of options.
+            if pain == self.pain[strain]:
                 self.pain[strain] = pain
                 self.tg[strain] = working
+            if pain < self.pain[strain]:
+                print("strain %d found new best pain %s (previous was %s)" % (strain, pain, self.pain[strain]))
+                self.pain[strain] = pain
+                self.tg[strain] = working
+
 
         if q:
             q.put((strain, self.tg[strain], self.pain[strain]))
@@ -612,7 +641,7 @@ class TeamMutate:
             
 
     def bestStrain(self):
-        bestPain = 10000
+        bestPain = PainIndex(1000,1000,1000)
         bestIndex = 0
         for i in range(len(self.tg)):
             if self.pain[i] < bestPain:
@@ -798,7 +827,7 @@ def signal_handler(signal, frame):
     print(str(bestTeamGroup))
     bestTeamGroup.writeFile()
                                     
-    print("Smallest pain we saw was %f." % smallestPain)
+    print("Smallest pain we saw: %s" % smallestPain)
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -813,6 +842,9 @@ while 1:
     mutate.mutate(300)
     # Identify the strain with the lowest pain.
     bestTeamGroup, smallestPain = mutate.bestStrain()
-    print(mutate.pain)
-    print("Best strain has pain of %f" % smallestPain)
+    print("Best pain for each strain: ")
+    painAsStrings = map(str, mutate.pain)
+    print(',   '.join(painAsStrings))
+
+    print("Best strain has pain of %s" % smallestPain)
     
