@@ -92,7 +92,12 @@ class Person:
         for i in range(len(self.prefs)):
             self.prefdict[self.prefs[i]] = i
             
-            
+    def hasTrait(self, trait):
+        # Checks if person has the given trait.
+        for t in self.traits:
+            if t == trait:
+                return True
+        return False
 
     def painIndex(self, team):
         """Calculates the pain index for the individual if they are on the
@@ -110,10 +115,6 @@ team."""
 
         friendsPresent = team.nameset & self.friendset
         foesPresent    = team.nameset & self.foeset
-
-        # If there are unmet traits after we are added onto the
-        # team, then increase pain.
-        unfilledTraitCount = team.unfilledTraitCount()
 
         return painIndex + configPainFoe*len(foesPresent) + configPainFriend*len(friendsPresent) + team.traitPain()
         #return painIndex
@@ -322,8 +323,8 @@ all of the required traits are satisfied or not."""
             else:
                 rank = "rank -"
 
-            friends = "%d friends" % len(self.nameset & i.friendset)
-            foes    = "%d foes"    % len(self.nameset & i.foeset)
+            friends = "%d/%d friends" % (len(self.nameset & i.friendset), len(i.friendset))
+            foes    = "%d/%d foes"    % (len(self.nameset & i.foeset),    len(i.foeset))
             
             s = s+"%s (pain %d, %s, %s, %s, traits %s)\n" % (i.name, i.painIndex(self), rank, friends, foes, i.traits)
         return s
@@ -368,7 +369,7 @@ removePainAbove, then always remove them."""
         if random.random() < .001:
             self.sanityCheck()
 
-    def sanityCheck(self):
+    def sanityCheck(self, checkForMissing=False):
         for t in self.teams:
             t.sanityCheck()
 
@@ -377,16 +378,17 @@ removePainAbove, then always remove them."""
         for t in self.teams:
             allPeople = allPeople + t.people
 
-        # Verify the friends/foes/team preferences for the person are valid
-        for p in allPeople:
-            for other in p.friends + p.foes:
-                if not self.personExists(other):
-                    print("Person '%s' lists '%s' as a friend/foe but the friend/foe doesn't exist." % (p.name, other))
-                    exit(1)
-            for t in p.prefs:
-                if not self.findTeam(t):
-                    print("Person '%s' lists '%s' as a team preference, but the team doesn't exist." % (p.name, t))
-                    exit(1)
+        if checkForMissing:
+            # Verify the friends/foes/team preferences for the person are valid
+            for p in allPeople:
+                for other in p.friends + p.foes:
+                    if not self.personExists(other):
+                        print("Person '%s' lists '%s' as a friend/foe but the friend/foe doesn't exist." % (p.name, other))
+                        #exit(1)
+                for t in p.prefs:
+                    if not self.findTeam(t):
+                        print("Person '%s' lists '%s' as a team preference, but the team doesn't exist." % (p.name, t))
+                        exit(1)
             
 
 
@@ -461,7 +463,8 @@ removePainAbove, then always remove them."""
         """Try to add a person in onto a mostly optimal team."""
 
         # Calculate pain index for the person if we were to place him on each team.
-        tp = [] # (team, pain, change in team pain) tuples
+        tp = [] # (team, pain, roomRemain) tuples
+
         for t in self.teams:
             if not t.hasRoom():
                 continue
@@ -477,10 +480,22 @@ removePainAbove, then always remove them."""
             if t.containsFoeOf(person):
                 pain = pain+configPainFoe
 
+            # Adjust pain based on how this new person might help fill traits
+            traitsWeFill = 0
+            for trait, value in t.unfilledTraits().items():
+                if person.hasTrait(trait):
+                    traitsWeFill = traitsWeFill+1
+            pain = pain - traitsWeFill*configPainTrait
+            
+
             # Keep track of the team, pain of the person we'd add onto
             # the team, and the amount of room on the team.
             tp.append( (t, pain, t.roomRemain()) )
 
+        # Shuffle the order of teams.
+        shuffle(tp)
+
+            
         # Sort possible teams to join by pain. If any have similar
         # amounts of pain, join the group with the most room
         # so that we keep more options available for the next person.
@@ -592,9 +607,9 @@ class TeamMutate:
             # Make a copy so we don't lose current solution
             working = copy.deepcopy(self.tg[strain])
             # Remove some people from teams
-            working.reset(random.randrange(1,100), pain.highestPain)
+            working.reset(random.randrange(1,100), pain.highestPain-1)
             # Assign people back into teams
-            working.makeAssignments((random.random()/20+.95)*100)
+            working.makeAssignments(random.random()*20+80)
             # Measure new pain
             pain = working.painIndex()
 
@@ -712,6 +727,9 @@ def generatePeople(tg, numPeople, numPrefs, numFriends, numFoes):
 def mysplit(string, sep):
     """Tokenize a string. Remove whitespace from tokens. Delete tokens that are empty strings. If sep is none, separate based on whitespace."""
 
+    if not string or len(string) == 0:
+        return []
+    
     # Append seperator to string. This helps if we are tokenizing a
     # list of items separated by commas and there may (or may not) be
     # a comma at the end of the list.
@@ -813,7 +831,7 @@ def readPeople(filename, tg):
 # Read teams/people from files:
 tg = readTeamGroup("teams.csv")
 readPeople("people.csv", tg)
-tg.sanityCheck()
+tg.sanityCheck(checkForMissing=True)
 
 smallestPain = 100000
 bestTeamGroup = None
