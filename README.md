@@ -61,3 +61,6 @@ When you run the program (python3 ./teampref.py), it expects teams.csv and peopl
 
 If you are not satisfied with the solution the program finds, you may wish to run the program multiple times and modify the input files (teams.csv and people.csv) to encourage it to make the choices which you prefer.
 
+## Known issues
+
+If there are many more spaces available in teams than there are people, then the teams which require the highest number of traits are unlikely to ever be filled. This happens because when the software adds the first person to that team, that person's pain will be high due to all of the unfilled traits. Therefore, it makes more sense for the software to fill the teams with the least constraints first.
