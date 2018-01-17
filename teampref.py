@@ -814,7 +814,7 @@ def readPeople(filename, tg):
 
             p = Person(personName, teamPrefs, friends, foes, traits)
             if len(teamName) > 0:
-                tg.addPersonToTeam(p, teamName)
+                tg.addPersonToTeam(p, teamName.lower().strip())
             else:
                 tg.addUnassigned(p)
 
