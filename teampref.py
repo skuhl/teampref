@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from random import shuffle
 import random
 import copy
@@ -419,7 +421,7 @@ removePainAbove, then always remove them."""
     def findTeam(self, teamName):
         """Find the team with the given team name."""
         for t in self.teams:
-            if t.name == teamName:
+            if t.name.lower() == teamName.lower():
                 return t
         return None
 
@@ -455,7 +457,7 @@ removePainAbove, then always remove them."""
         if team:
             return team.addPerson(person)
         else:
-            print("ERROR: Trying to add '%s' to '%s', but it doesn't exist" % (person.name, teamName))
+            print("ERROR: Trying to add person '%s' to team '%s', but it doesn't exist" % (person.name, teamName))
             exit(1)
 
         
