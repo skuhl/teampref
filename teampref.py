@@ -36,6 +36,11 @@ def dedupList(oldlist):
     return newlist
 
 class PainIndex:
+    """A PainIndex class defines an overall pain for a group of
+    teams. Every team arrangement we try will produce a PainIndex. This
+    class provides comparators so we can easily compare two pain indices
+    and identify which is larger. It also provides an easy way to print
+    out the current overall pain values."""
     def __init__(self, highestPain, numPeopleWithHighest, avgPain):
         self.highestPain = highestPain
         self.numPeopleWithHighest = numPeopleWithHighest
@@ -72,7 +77,7 @@ class Person:
 
         # This will be set to true if this person is assigned to the
         # unassigned team list. It means that they are a free agent (even
-        # if we temporarily assign them to a team.
+        # if we temporarily assign them to a team).
         self.freeAgent = False
 
         # ---
@@ -494,13 +499,16 @@ removePainAbove, then always remove them."""
             # the team, and the amount of room on the team.
             tp.append( (t, pain, t.roomRemain()) )
 
-        # Shuffle the order of teams.
+        # Shuffle the order of teams in place. We do this step to help
+        # randomize the subsequent sort() function so that if there
+        # are two teams which have equal pain and capacity, we don't
+        # always pick the same one.
         shuffle(tp)
-
-            
-        # Sort possible teams to join by pain. If any have similar
-        # amounts of pain, join the group with the most room
-        # so that we keep more options available for the next person.
+      
+        # Sort possible teams to join by pain. If there are two good
+        # teams that we could be added to, prioritize joining the
+        # group with the most room available to keep more options
+        # available for the next person.
         tp.sort(key=lambda tup: (tup[1], tup[2]))
 
 #        print()
@@ -515,9 +523,10 @@ removePainAbove, then always remove them."""
             if random.random() < obeyPrefs/100.0 and tup[0].addPerson(person):
                 return True
 
-        # If that didn't work, actually try to add to each team. The
-        # randomness we inserted may have caused there to be no teams
-        # available but there might actually be teams with room.
+        # If that didn't work, actually try adding the person to each
+        # team one at a time until one succeeds. This is necessary
+        # because we may have skipped some teams that have room
+        # because of the randomness we inserted (via obeyPrefs).
         for t in self.teams:
             if t.addPerson(person):
                 return True
