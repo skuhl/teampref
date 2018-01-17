@@ -797,6 +797,10 @@ def readPeople(filename, tg):
         if not rows:
             print("ERROR: Failed to read file %s\n" % filename)            
 
+        # A set to track which people we have read from the file to
+        # ensure file doesn't contain duplicates.
+        seenPeople = set()
+            
         next(rows, None) # skip first row (header)
         for r in rows:
             #print("Working on row: %s\n" % r)
@@ -804,8 +808,13 @@ def readPeople(filename, tg):
                 print("Row must have at least 1 column: %s" % r)
                 continue
 
-
             personName = str(r[0].strip())
+            if personName in seenPeople:
+                print("ERROR: Person %s is defined twice in %s." % (personName, filename))
+                exit(1)
+            else:
+                seenPeople.add(personName)
+            
             teamName = str(r[1].strip())
             teamPrefs = mysplit(str(r[2]), ",")
             friends   = mysplit(str(r[3]), ",")
